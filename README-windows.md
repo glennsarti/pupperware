@@ -64,6 +64,8 @@ For convenience, put the docker binary into the system PATH so that commands can
 [Environment]::SetEnvironmentVariable("Path", "${Env:Path};${Env:ProgramFiles}\docker", [EnvironmentVariableTarget]::Machine)
 ```
 
+**Warning** - On Windows 10, the required LCOW virtal machine files may not exist, and the currently available download ([4.14.29](https://github.com/linuxkit/lcow/releases/tag/4.14.29-0aea33bc)) is too out of date. The LCOW files need to be built as per the instructions in this README.
+
 ### Building the LCOW virtual machine
 
 To run Linux containers with LCOW requires a lightweight VM image that runs under Hyper-V. At this time, the
@@ -73,90 +75,9 @@ outdated and produces different artifacts than what the master version of Docker
 Therefore, an image must be built using the [linuxkit](https://github.com/linuxkit/linuxkit) tooling. Additionally,
 building from source requires `git`, `make` and `docker` itself.
 
-#### Building on OSX
+#### Building LCOW files on Windows
 
-The simplest way to do this is on OSX with the help of Homebrew, as `linuxkit` builds are already available there.
-
-```shell
-brew install git
-
-brew tap linuxkit/linuxkit
-brew install --HEAD linuxkit
-```
-
-`make` should already be installed with XCode on OSX. To build the image is then
-
-```shell
-git clone https://github.com/linuxkit/lcow
-cd lcow
-
-docker-start
-make
-```
-
-A successful build of the VM image should look something like this
-
-
-```
-linuxkit build lcow.yml
-Extract kernel image: linuxkit/kernel:4.14.35
-Pull image: docker.io/linuxkit/kernel:4.14.35@sha256:3bef6da5bdd9412954b1c971ef43e06bcb1445438e336daf73e681324c58343c
-Add init containers:
-Process init image: linuxkit/init-lcow:0b6d22dcead2548c4ba8761f0fccb728553ebd06
-Pull image: docker.io/linuxkit/init-lcow:0b6d22dcead2548c4ba8761f0fccb728553ebd06@sha256:6756c19a2be2f68ee20f01bf5736c3e6f24ddb282345feb2d7ac5c3885972734
-Process init image: linuxkit/runc:v0.5
-Pull image: docker.io/linuxkit/runc:v0.5@sha256:9782c306200ad7d3dcbe52ac7b01f2594b9e970c46e002f6a5af407dc8c24165
-Add files:
-  etc/linuxkit.yml
-Create outputs:
-  lcow-kernel lcow-initrd.img lcow-cmdline
-mv lcow-kernel kernel
-mv lcow-initrd.img initrd.img
-```
-
-These results were produced with the following tools:
-
-```
-> docker version
-
-Client:
- Version:           18.06.1-ce
- API version:       1.38
- Go version:        go1.10.3
- Git commit:        e68fc7a
- Built:             Tue Aug 21 17:21:31 2018
- OS/Arch:           darwin/amd64
- Experimental:      false
-
-Server:
- Engine:
-  Version:          18.06.1-ce
-  API version:      1.38 (minimum version 1.12)
-  Go version:       go1.10.3
-  Git commit:       e68fc7a
-  Built:            Tue Aug 21 17:28:38 2018
-  OS/Arch:          linux/amd64
-  Experimental:     false
-
-> linuxkit version
-
-linuxkit version v0.6+
-commit: c8449ba2dbc0e26a80b2e4acfb4946be68d3239b
-
-> make --version
-
-GNU Make 3.81
-Copyright (C) 2006  Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.
-There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE.
-
-This program built for i386-apple-darwin11.3.0
-```
-
-#### Alternatively, building on Windows
-
-Alternatively, Windows can be used to build this VM, with the help of Chocolatey to install prerequisites.
+Windows can be used to build this VM, with the help of Chocolatey to install prerequisites.  Alternatively the files can be build on [OSX](https://github.com/linuxkit/lcow#prerequisites-1)
 
 * Install Chocolatey
 
@@ -192,11 +113,14 @@ if one is not explicitly configured. This can be verified with:
 
 * Acquire and build the LCOW image
 
+Note - The LCOW building process uses `docker` to build, therefore it requires a working installation of Docker.  Due to LCOW not currently working out of the box, you will need to install
+[Docker For Windows](https://www.docker.com/products/docker-desktop) locally, or build the LCOW files on another computer.
+
 ```powershell
 Push-Location $Env:Temp
 git clone https://github.com/linuxkit/lcow
 Push-Location lcow
-$Env:Path += "$Env:USERPROFILE\go\bin"
+$Env:Path += ";$Env:USERPROFILE\go\bin"
 linuxkit build lcow.yml
 ```
 
